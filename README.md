@@ -62,7 +62,7 @@ Este proyecto evolucionó a través de 3 fases principales:
 
 | Métrica | Fase 2 (Sintético 97%) | Fase 3 (Real 85%) | Realidad |
 |---------|------------------------|-------------------|----------|
-| **Dataset** | Ejemplos generados simples | Código real de DVWA, WebGoat | ✅ Más realista |
+| **Dataset** | Eje  mplos generados simples | Código real de DVWA, WebGoat | ✅ Más realista |
 | **XSS Angular** | 73% safe ❌ (FALSO NEGATIVO) | **99.55% XSS** ✅ | ✅ Arreglado |
 | **Generalización** | Memoriza patrones | Aprende contexto | ✅ Mejor |
 | **Confiabilidad** | Alta en síntesis | Alta en real | ✅ Confiable |

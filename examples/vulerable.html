@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <h2>Ejemplo con múltiples var</h2>
+    <p id="demo"></p>
+    <script>
+        var a, b, c;  // Declaración múltiple en una línea
+        a = 1;
+        b = 2;
+        c = a + b;
+
+        var d;       // Declaraciones separadas
+        var e;
+        var f;
+        d = 10;
+        e = 3;
+        f = d * e;
+
+        var mensaje = 'Hola, prueba con var';  // Variable con string
+
+        document.getElementById("demo").innerHTML =
+            'Resultado c: ' + c + ', f: ' + f + ', Mensaje: ' + mensaje;
+    </script>
+</body>
+
+</html>

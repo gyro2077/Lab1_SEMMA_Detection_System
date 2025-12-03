@@ -1,0 +1,76 @@
+# Ignore Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Ignore Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore model files (large binary files)
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.pth
+
+# Ignore dataset files (can be regenerated)
+dataset/github_poc/
+dataset/searchsploit/
+dataset/samples.csv
+dataset/features/
+
+# Keep directory structure but ignore content
+!dataset/github_poc/.gitkeep
+!dataset/searchsploit/.gitkeep
+!dataset/features/.gitkeep
+
+# Ignore safe_code except examples (user adds their own)
+dataset/safe_code/*
+!dataset/safe_code/.gitkeep
+!dataset/safe_code/api_secure.py
+!dataset/safe_code/form_handler_secure.js
+!dataset/safe_code/db_secure.php
+
+# Ignore system files
+.Trash-*/
+Thumbs.db
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore temporary files
+*.tmp
+tmp/
+temp/
+
+# Ignore distribution/packaging
+dist/
+build/
+*.egg-info/
+
+# Ignore test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Keep example files (for demonstration)
+!examples/

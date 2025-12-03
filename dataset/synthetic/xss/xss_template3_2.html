@@ -1,0 +1,3 @@
+<?php
+echo "<h1>Welcome " . $_GET['name'] . "</h1>";
+?>

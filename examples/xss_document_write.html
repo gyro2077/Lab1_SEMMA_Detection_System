@@ -1,0 +1,5 @@
+<script>
+// document.write XSS
+const username = new URLSearchParams(window.location.search).get('user');
+document.write('<h1>Profile of ' + username + '</h1>');
+</script>

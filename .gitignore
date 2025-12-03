@@ -1,76 +1,46 @@
-# Ignore Python virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# Ignore Python compiled files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+*.egg-info/
+dist/
+build/
 
-# Ignore Jupyter Notebook checkpoints
-.ipynb_checkpoints/
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
 
-# Ignore IDE/Editor files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Ignore model files (large binary files)
+# Modelos entrenados (GRANDES)
 models/*.pkl
-models/*.joblib
-models/*.h5
-models/*.pt
-models/*.pth
 
-# Ignore dataset files (can be regenerated)
+# Datasets descargados (MUY GRANDES - se regeneran con scripts)
 dataset/github_poc/
 dataset/searchsploit/
+dataset/real_vulnerabilities/
 dataset/samples.csv
 dataset/features/
 
-# Keep directory structure but ignore content
-!dataset/github_poc/.gitkeep
-!dataset/searchsploit/.gitkeep
-!dataset/features/.gitkeep
+# Ejemplos generados (se regeneran con generate_massive_dataset.py)
+examples/generated/
 
-# Ignore safe_code except examples (user adds their own)
-dataset/safe_code/*
-!dataset/safe_code/.gitkeep
-!dataset/safe_code/api_secure.py
-!dataset/safe_code/form_handler_secure.js
-!dataset/safe_code/db_secure.php
-
-# Ignore system files
-.Trash-*/
-Thumbs.db
-
-# Ignore logs
+# Logs
 *.log
 logs/
 
-# Ignore temporary files
-*.tmp
-tmp/
-temp/
+# OS
+.DS_Store
+Thumbs.db
 
-# Ignore distribution/packaging
-dist/
-build/
-*.egg-info/
-
-# Ignore test coverage
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-
-# Keep example files (for demonstration)
-!examples/
+# Mantener estructura de directorios
+!.gitkeep

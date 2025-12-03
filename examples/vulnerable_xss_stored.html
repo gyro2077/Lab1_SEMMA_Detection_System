@@ -1,0 +1,33 @@
+<!-- XSS Example: Event handler injection -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User Profile</title>
+</head>
+
+<body>
+    <h1>User Profile</h1>
+
+    <script>
+        // Get user input from URL
+        const params = new URLSearchParams(window.location.search);
+        const bio = params.get('bio');
+
+        // VULNERABLE: Direct insertion allows script injection
+        document.write('<div class="bio">' + bio + '</div>');
+
+        // VULNERABLE: Image onerror handler
+        const avatar = params.get('avatar');
+        document.write('<img src="' + avatar + '" onerror="alert(document.cookie)">');
+
+        // VULNERABLE: Event handler in attribute
+        const username = params.get('user');
+        document.getElementById('profile').innerHTML =
+            '<button onclick="' + username + '">Click Me</button>';
+    </script>
+
+    <div id="profile"></div>
+</body>
+
+</html>

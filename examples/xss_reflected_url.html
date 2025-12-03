@@ -1,0 +1,12 @@
+<!-- Reflected XSS from URL parameter -->
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+        document.getElementById('welcome').innerHTML = "Welcome " + name;
+    </script>
+    <div id="welcome"></div>
+</body>
+</html>

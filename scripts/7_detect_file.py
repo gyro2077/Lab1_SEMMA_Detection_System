@@ -209,13 +209,46 @@ if __name__ == "__main__":
     ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     MODELS_DIR = os.path.join(ROOT_DIR, "models")
 
-    vec_path = os.path.join(MODELS_DIR, "vectorizer.pkl")
-    model_path = os.path.join(MODELS_DIR, "model_rf.pkl")
+    # === Cargar modelo ===
+    print(f"\n{Colors.OKCYAN}[+] Cargando modelo de ML...{Colors.ENDC}")
 
-    if not os.path.exists(vec_path) or not os.path.exists(model_path):
-        print(f"{Colors.FAIL}[!] No se encontró vectorizer o modelo.{Colors.ENDC}")
-        print("    Ejecuta primero 5_make_features.py y 6_train_model.py.")
+    # Try XGBoost model first, fallback to RF
+    xgb_model_path = os.path.join(MODELS_DIR, "model_xgb.pkl")
+    rf_model_path = os.path.join(MODELS_DIR, "model_rf.pkl")
+    vec_path = os.path.join(MODELS_DIR, "vectorizer.pkl")
+    le_path = os.path.join(MODELS_DIR, "label_encoder.pkl")
+
+    clf = None # Initialize clf
+    use_label_encoder = False
+    label_encoder = None
+
+    if os.path.exists(xgb_model_path):
+        model_path = xgb_model_path
+        clf = joblib.load(model_path)
+        print(f"{Colors.OKCYAN}[+] Modelo XGBoost cargado{Colors.ENDC}")
+        
+        # Load label encoder if exists
+        if os.path.exists(le_path):
+            label_encoder = joblib.load(le_path)
+            use_label_encoder = True
+        else:
+            print(f"{Colors.WARNING}[!] Advertencia: No se encontró label_encoder.pkl para el modelo XGBoost.{Colors.ENDC}")
+            print(f"{Colors.WARNING}    Las etiquetas de clase podrían no ser interpretadas correctamente.{Colors.ENDC}")
+            use_label_encoder = False
+    elif os.path.exists(rf_model_path):
+        model_path = rf_model_path
+        clf = joblib.load(model_path)
+        use_label_encoder = False
+        print(f"{Colors.OKCYAN}[+] Modelo RandomForest cargado{Colors.ENDC}")
+    else:
+        print(f"{Colors.FAIL}[!] No se encontró ningún modelo (XGBoost o RandomForest) en: {MODELS_DIR}{Colors.ENDC}")
+        print("    Ejecuta primero: python3 6_train_model.py")
         sys.exit(1)
+
+    if not os.path.exists(vec_path):
+        print(f"{Colors.FAIL}[!] No se encontró el vectorizer en: {vec_path}{Colors.ENDC}")
+        sys.exit(1)
+    vectorizer = joblib.load(vec_path)
 
     # Header
     print_header()
@@ -224,23 +257,33 @@ if __name__ == "__main__":
     file_size = os.path.getsize(file_path)
     print_file_info(file_path, file_size)
 
-    # Cargar modelo
-    print(f"\n{Colors.OKCYAN}[+] Cargando modelo de ML...{Colors.ENDC}")
-    model = joblib.load(model_path)
-    vectorizer = joblib.load(vec_path)
-
     # Leer y analizar archivo
     with open(file_path, "r", errors="ignore") as f:
         code = f.read()
 
-    print(f"{Colors.OKCYAN}[+] Analizando código...{Colors.ENDC}")
+    print(f"{Colors.OKCYAN}[+] Analizando código...{Colors.ENDC}\"")
     
     X_vec = vectorizer.transform([code])
     X = X_vec.toarray()
 
-    classes = model.classes_
-    probs = model.predict_proba(X)[0]
-    pred = classes[np.argmax(probs)]
+    # Predict with proper label handling
+    if use_label_encoder:
+        # XGBoost with label encoder
+        pred_encoded = clf.predict(X)[0]
+        probs_encoded = clf.predict_proba(X)[0]
+        
+        # Decode prediction
+        pred = label_encoder.inverse_transform([pred_encoded])[0]
+        
+        # Get class names and probabilities
+        classes = label_encoder.classes_
+        probs = probs_encoded
+    else:
+        # RandomForest or XGBoost without label encoder
+        classes = clf.classes_
+        probs = clf.predict_proba(X)[0]
+        pred = classes[np.argmax(probs)]
+    
     confidence = np.max(probs)
 
     # Buscar CVEs en el código
@@ -251,3 +294,4 @@ if __name__ == "__main__":
     print_prob_bars(classes, probs)
     print_cve_ids(cve_ids)
     print_threat_assessment(pred, confidence)
+

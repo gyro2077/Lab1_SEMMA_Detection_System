@@ -1,116 +1,129 @@
-# ============================================================================
-# SEMMA VULNERABILITY DETECTION PIPELINE - Windows PowerShell
-# Ejecuta todo el flujo desde descarga de datos hasta entrenamiento
-# ============================================================================
-
-$ErrorActionPreference = "Stop"
-
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectRoot = Split-Path -Parent $ScriptDir
+# ================================================================
+# SEMMA VULNERABILITY DETECTION PIPELINE - WINDOWS VERSION
+# PowerShell script para ejecutar todo el flujo en Windows
+# ================================================================
 
 Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║          SEMMA VULNERABILITY DETECTION PIPELINE                ║" -ForegroundColor Cyan
+Write-Host "║                    (Windows Version)                           ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 
-# Verificar entorno virtual
+# Verificar que estamos en el entorno virtual
 if (-not $env:VIRTUAL_ENV) {
     Write-Host "⚠️  No estás en un entorno virtual." -ForegroundColor Yellow
-    Write-Host "   Ejecuta: .venv\Scripts\Activate.ps1" -ForegroundColor Yellow
+    Write-Host "   Ejecuta: .\.venv\Scripts\Activate.ps1" -ForegroundColor Yellow
+    Write-Host "   (Si hay error de ejecución de scripts, ejecuta primero:" -ForegroundColor Yellow
+    Write-Host "    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser)" -ForegroundColor Yellow
     exit 1
 }
 
-Set-Location $ProjectRoot
+$ErrorActionPreference = "Stop"
 
-# PASO 1: Descargar PoCs de GitHub
+# PASO 1: Descargar PoCs de GitHub (OPCIONAL - requiere git)
+Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "📥 PASO 1/6: Descargando PoCs de GitHub..." -ForegroundColor White
+Write-Host "📥 PASO 1/5: Descargando PoCs de GitHub (opcional)..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-# Leer configuración
-. "$ProjectRoot\scripts\0_config.sh"
-
-# Crear directorio si no existe
-New-Item -ItemType Directory -Force -Path "$ProjectRoot\dataset\github_poc" | Out-Null
-
-# Descargar PoCs (simplificado para Windows)
-$CVE_LIST = @(
-    "CVE-2021-44228",  # Log4Shell
-    "CVE-2023-38831",  # WinRAR RCE
-    "CVE-2021-3156",   # Sudo
-    "CVE-2020-1472"    # Zerologon
-)
-
-foreach ($cve in $CVE_LIST) {
-    Write-Host "[+] Buscando PoC para $cve..." -ForegroundColor Green
-    # En Windows es complicado hacer búsquedas de GitHub sin script adicional
-    # Por ahora lo dejamos como opcional
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    Write-Host "[+] Git detectado. Descargando PoCs..." -ForegroundColor Green
+    
+    # CVEs a descargar (adaptado de 1_github_poc.sh)
+    $CVE_LIST = @(
+        "CVE-2020-1472",
+        "CVE-2021-3156", 
+        "CVE-2021-44228",
+        "CVE-2023-38831",
+        "CVE-2023-36884"
+    )
+    
+    $POC_DIR = "dataset\github_poc"
+    New-Item -ItemType Directory -Force -Path $POC_DIR | Out-Null
+    
+    foreach ($cve in $CVE_LIST) {
+        $search_url = "https://api.github.com/search/repositories?q=$cve+poc&sort=stars&order=desc"
+        Write-Host "  Buscando $cve..." -ForegroundColor Gray
+        
+        try {
+            $response = Invoke-RestMethod -Uri $search_url -Headers @{"User-Agent"="PowerShell"}
+            if ($response.items.Count -gt 0) {
+                $repo_url = $response.items[0].clone_url
+                $repo_name = $response.items[0].name
+                $target_dir = "$POC_DIR\$cve-$repo_name"
+                
+                if (-not (Test-Path $target_dir)) {
+                    git clone --depth 1 $repo_url $target_dir 2>$null
+                    Write-Host "    ✓ Descargado: $repo_name" -ForegroundColor Green
+                }
+            }
+        } catch {
+            Write-Host "    ! Error descargando $cve" -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host "⚠️  Git no instalado. Saltando descarga de PoCs..." -ForegroundColor Yellow
+    Write-Host "   (Puedes instalarlo desde: https://git-scm.com/)" -ForegroundColor Gray
 }
 
-Write-Host "[✓] Descarga de PoCs completada (o saltada)" -ForegroundColor Green
-
-# PASO 2: SearchSploit (opcional - normalmente no está en Windows)
+# PASO 2: Generar ejemplos sintéticos (430 archivos)
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "📥 PASO 2/6: SearchSploit (saltando - no disponible en Windows)" -ForegroundColor Yellow
+Write-Host "🔧 PASO 2/5: Generando 430 ejemplos sintéticos..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-# PASO 3: Generar ejemplos sintéticos masivos (430 archivos)
-Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🔧 PASO 3/6: Generando 430 ejemplos sintéticos..." -ForegroundColor White
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 python scripts\3_generate_massive_dataset.py
-if ($LASTEXITCODE -ne 0) { 
+if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Error generando dataset sintético" -ForegroundColor Red
-    exit 1 
+    exit 1
 }
 
-# PASO 4: Descargar repositorios REALES (CRÍTICO)
+# PASO 3: Descargar repositorios REALES (CRÍTICO)
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🌐 PASO 4/6: Descargando repositorios REALES (DVWA, WebGoat, etc)..." -ForegroundColor White
+Write-Host "🌐 PASO 3/5: Descargando repositorios REALES (DVWA, WebGoat, etc)..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
 python scripts\4_download_real_datasets.py
-if ($LASTEXITCODE -ne 0) { 
+if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Error descargando datasets reales" -ForegroundColor Red
-    exit 1 
+    exit 1
 }
 
-# PASO 5: Generar features (TF-IDF)
+# PASO 4: Generar features (TF-IDF)
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "⚙️  PASO 5/6: Generando features TF-IDF..." -ForegroundColor White
+Write-Host "⚙️  PASO 4/5: Generando features TF-IDF..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
 python scripts\5_make_features.py
-if ($LASTEXITCODE -ne 0) { 
+if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Error generando features" -ForegroundColor Red
-    exit 1 
+    exit 1
 }
 
-# PASO 6: Entrenar modelo XGBoost
+# PASO 5: Entrenar modelo XGBoost
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🤖 PASO 6/6: Entrenando modelo XGBoost..." -ForegroundColor White
+Write-Host "🤖 PASO 5/5: Entrenando modelo XGBoost..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
 python scripts\6_train_model.py
-if ($LASTEXITCODE -ne 0) { 
+if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Error entrenando modelo" -ForegroundColor Red
-    exit 1 
+    exit 1
 }
 
-# PASO 7: Prueba del detector
+# PASO 6: Prueba del detector
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🧪 PROBANDO: Detector en archivo de ejemplo..." -ForegroundColor White
+Write-Host "🧪 Probando detector en archivo de ejemplo..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-# Prueba en un archivo vulnerable
 if (Test-Path "examples\vulnerable_sqli.php") {
     python scripts\7_detect_file.py examples\vulnerable_sqli.php
 } else {
-    Write-Host "⚠️  No se encontró archivo de prueba." -ForegroundColor Yellow
-    Write-Host "   Usa: python scripts\7_detect_file.py <archivo>" -ForegroundColor Yellow
+    Write-Host "⚠️  No se encontró archivo de prueba. Usa: python scripts\7_detect_file.py <archivo>" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -119,6 +132,7 @@ Write-Host "║                    ✅ PIPELINE COMPLETADO                      
 Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
 
+# Mostrar estadísticas
 if (Test-Path "dataset\samples.csv") {
     $lineCount = (Get-Content "dataset\samples.csv" | Measure-Object -Line).Lines
     Write-Host "📊 Dataset generado: $lineCount muestras" -ForegroundColor Cyan
@@ -127,5 +141,5 @@ if (Test-Path "dataset\samples.csv") {
 Write-Host "🤖 Modelo entrenado: models\model_xgb.pkl" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "💡 Para detectar vulnerabilidades:" -ForegroundColor Yellow
-Write-Host "   python scripts\7_detect_file.py <archivo>" -ForegroundColor White
+Write-Host "   python scripts\7_detect_file.py <archivo>" -ForegroundColor Yellow
 Write-Host ""

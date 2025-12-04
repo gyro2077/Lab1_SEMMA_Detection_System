@@ -152,7 +152,7 @@ cd SEMMA
 
 # 2. Crear entorno virtual
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # En macOS/Linux
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
@@ -171,19 +171,17 @@ cd SEMMA
 
 # 2. Crear entorno virtual
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+
+# Si hay error de ejecución de scripts, ejecutar primero como Administrador:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
 
-# Nota: Git debe estar instalado y en PATH
-# Descargar de: https://git-scm.com/download/win
+# 4. (Opcional) Instalar Git si no lo tienes
+# Descargar desde: https://git-scm.com/
 ```
-
-> ⚠️ **Windows:** Si tienes error al ejecutar `.ps1`, ejecuta primero:
-> ```powershell
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-> ```
 
 ---
 
@@ -191,7 +189,7 @@ pip install -r requirements.txt
 
 ### Detectar Vulnerabilidades en un Archivo
 
-**Linux/macOS:**
+**Linux / macOS:**
 ```bash
 source .venv/bin/activate
 python3 scripts/7_detect_file.py examples/vulnerable_sqli.php
@@ -199,7 +197,7 @@ python3 scripts/7_detect_file.py examples/vulnerable_sqli.php
 
 **Windows:**
 ```powershell
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python scripts\7_detect_file.py examples\vulnerable_sqli.php
 ```
 
@@ -238,7 +236,7 @@ Confianza: 98.40%
 
 **Para obtener EXACTAMENTE el mismo modelo que tengo:**
 
-### Linux/macOS
+### Linux / macOS
 
 ```bash
 # 1. Activar entorno
@@ -248,73 +246,35 @@ source .venv/bin/activate
 bash scripts/pipeline.sh
 
 # O paso por paso:
-bash scripts/1_github_poc.sh
-bash scripts/2_searchsploit.sh
-python3 scripts/3_generate_massive_dataset.py
-python3 scripts/4_download_real_datasets.py
-python3 scripts/5_make_features.py
-python3 scripts/6_train_model.py
-
-# 8. Usar detector
-python3 scripts/7_detect_file.py <archivo>
+bash scripts/1_github_poc.sh                    # Descargar PoCs
+bash scripts/2_searchsploit.sh                  # (Opcional) Exploits
+python3 scripts/3_generate_massive_dataset.py   # Generar sintéticos
+python3 scripts/4_download_real_datasets.py     # Descargar REALES (CRÍTICO)
+python3 scripts/5_make_features.py              # Generar features
+python3 scripts/6_train_model.py                # Entrenar modelo
+python3 scripts/7_detect_file.py <archivo>      # Detectar
 ```
 
 ### Windows
 
 ```powershell
 # 1. Activar entorno
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
-# 2-7. Ejecutar pipeline completo
+# 2-5. Ejecutar pipeline completo
 .\scripts\pipeline.ps1
 
 # O paso por paso:
-python scripts\3_generate_massive_dataset.py
-python scripts\4_download_real_datasets.py
-python scripts\5_make_features.py
-python scripts\6_train_model.py
-
-# 8. Usar detector
-python scripts\7_detect_file.py <archivo>
+python scripts\3_generate_massive_dataset.py   # Generar sintéticos (430 archivos)
+python scripts\4_download_real_datasets.py     # Descargar REALES (1,522 archivos - CRÍTICO)
+python scripts\5_make_features.py              # Generar features TF-IDF
+python scripts\6_train_model.py                # Entrenar modelo XGBoost
+python scripts\7_detect_file.py <archivo>      # Detectar vulnerabilidades
 ```
 
-### O Usar el Pipeline Completo:
+> ⚠️ **Nota:** El paso más importante es el **#4** (`download_real_datasets.py`). Sin los repositorios reales, el modelo tendrá accuracy ~70-80% con falsos negativos.
 
-**Linux/macOS:**
-```bash
-bash scripts/pipeline.sh
-```
-
-**Windows:**
-```powershell
-.\scripts\pipeline.ps1
-```
-
-> ⚠️ **Nota:** El paso más importante es el **#5** (`download_real_datasets.py`). Sin los repositorios reales, el modelo tendrá accuracy ~70-80% con falsos negativos.
-
-### 📝 Notas para Usuarios de Windows
-
-**Diferencias principales:**
-
-1. **Scripts `.sh` no funcionan** - Por eso creamos `pipeline.ps1`
-2. **Rutas** - Usa `\` en vez de `/` (ej: `scripts\pipeline.ps1`)
-3. **Python** - Usa `python` en vez de `python3`
-4. **Activación** - `.venv\Scripts\Activate.ps1` en vez de `source .venv/bin/activate`
-5. **Execution Policy** - Si no puedes ejecutar `.ps1`, ejecuta:
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-
-**Lo que SÍ funciona igual:**
-- ✅ Python scripts (3, 4, 5, 6, 7)
-- ✅ Detección de vulnerabilidades
-- ✅ Entrenamiento del modelo
-- ✅ Resultados idénticos
-
-**Lo que NO está disponible en Windows:**
-- ❌ `scripts/1_github_poc.sh` (se salta automáticamente)
-- ❌ `scripts/2_searchsploit.sh` (requiere Linux)
-- ✅ **Pero no importa** - Los pasos 3-6 te dan el mismo modelo con 2,900+ muestras
+> 💡 **Windows:** Los scripts .sh (1_github_poc.sh, 2_searchsploit.sh) no funcionan en Windows, pero no son críticos. El pipeline.ps1 descarga PoCs de GitHub automáticamente.
 
 ---
 
@@ -440,6 +400,25 @@ Accuracy Global:                       84.92%
 ---
 
 ## 🛠️ Troubleshooting
+
+### Error: `cannot be loaded because running scripts is disabled`
+
+**Windows solamente:**
+```powershell
+# Ejecutar PowerShell como Administrador y ejecutar:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Luego activar el entorno:
+.\.venv\Scripts\Activate.ps1
+```
+
+### Los Scripts .sh No Funcionan en Windows
+
+Los scripts `1_github_poc.sh` y `2_searchsploit.sh` son para Linux/macOS. En Windows:
+
+1. **Usa el pipeline.ps1** que hace descarga automática de PoCs
+2. O descarga manualmente los repositorios que necesites
+3. **No son críticos** - El modelo funciona bien sin ellos
 
 ### Error: `ModuleNotFoundError: No module named 'xgboost'`
 

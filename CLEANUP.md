@@ -12,7 +12,8 @@ scripts/
 ├── 5_make_features.py              # ⭐ Extrae features TF-IDF
 ├── 6_train_model.py                # ⭐ Entrena modelo XGBoost
 ├── 7_detect_file.py                # ⭐ Detecta vulnerabilidades
-└── pipeline.sh                     # Ejecuta TODO en orden
+├── pipeline.sh                     # 🐧 Pipeline para Linux/macOS
+└── pipeline.ps1                    # 🪟 Pipeline para Windows (NUEVO)
 ```
 
 ## 🗑️ Basura Eliminada
@@ -76,6 +77,7 @@ dataset/
 
 ## 🎯 Para Clonar y Usar
 
+### Linux / macOS
 ```bash
 # 1. Clonar
 git clone <repo>
@@ -91,6 +93,24 @@ bash scripts/pipeline.sh
 
 # 4. Usar
 python3 scripts/7_detect_file.py <archivo>
+```
+
+### Windows
+```powershell
+# 1. Clonar
+git clone <repo>
+cd SEMMA
+
+# 2. Instalar
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# 3. Generar TODO
+.\scripts\pipeline.ps1
+
+# 4. Usar
+python scripts\7_detect_file.py <archivo>
 ```
 
 ## 📊 Tamaños

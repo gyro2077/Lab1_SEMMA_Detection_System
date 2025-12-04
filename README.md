@@ -62,7 +62,7 @@ Este proyecto evolucionó a través de 3 fases principales:
 
 | Métrica | Fase 2 (Sintético 97%) | Fase 3 (Real 85%) | Realidad |
 |---------|------------------------|-------------------|----------|
-| **Dataset** | Eje  mplos generados simples | Código real de DVWA, WebGoat | ✅ Más realista |
+| **Dataset** | Ejemplos generados simples | Código real de DVWA, WebGoat | ✅ Más realista |
 | **XSS Angular** | 73% safe ❌ (FALSO NEGATIVO) | **99.55% XSS** ✅ | ✅ Arreglado |
 | **Generalización** | Memoriza patrones | Aprende contexto | ✅ Mejor |
 | **Confiabilidad** | Alta en síntesis | Alta en real | ✅ Confiable |
@@ -217,10 +217,10 @@ bash scripts/1_github_poc.sh
 bash scripts/2_searchsploit.sh
 
 # 4. Generar ejemplos sintéticos (430 archivos)
-python3 scripts/generate_massive_dataset.py
+python3 scripts/3_generate_massive_dataset.py
 
 # 5. Descargar repositorios REALES (1,522 archivos - CRÍTICO)
-python3 scripts/download_real_datasets.py
+python3 scripts/4_download_real_datasets.py
 
 # 6. Generar features TF-IDF
 python3 scripts/5_make_features.py
@@ -247,36 +247,36 @@ bash scripts/pipeline.sh
 ```
 SEMMA/
 ├── scripts/
-│   ├── 0_config.sh                    # Variables de entorno
-│   ├── 1_github_poc.sh                # Descarga PoCs de GitHub
-│   ├── 2_searchsploit.sh              # Extrae exploits de SearchSploit
-│   ├── 5_make_features.py             # ⭐ Extrae features (TF-IDF + etiquetado)
-│   ├── 6_train_model.py               # ⭐ Entrena XGBoost
-│   ├── 7_detect_file.py               # ⭐ Detecta vulnerabilidades
-│   ├── generate_massive_dataset.py    # Genera 430 ejemplos sintéticos
-│   ├── download_real_datasets.py      # ⭐ Descarga repos reales (CRÍTICO)
-│   └── pipeline.sh                    # Ejecuta todo el flujo
+│   ├── 0_config.sh                         # Variables de entorno
+│   ├── 1_github_poc.sh                     # Descarga PoCs de GitHub
+│   ├── 2_searchsploit.sh                   # Extrae exploits de SearchSploit
+│   ├── 3_generate_massive_dataset.py       # ⭐ Genera 430 ejemplos sintéticos
+│   ├── 4_download_real_datasets.py         # ⭐ Descarga repos reales (CRÍTICO)
+│   ├── 5_make_features.py                  # ⭐ Extrae features (TF-IDF + etiquetado)
+│   ├── 6_train_model.py                    # ⭐ Entrena XGBoost
+│   ├── 7_detect_file.py                    # ⭐ Detecta vulnerabilidades
+│   └── pipeline.sh                         # Ejecuta todo el flujo
 │
 ├── dataset/
-│   ├── github_poc/                    # PoCs descargados (ignorado en git)
-│   ├── searchsploit/                  # Exploits (ignorado en git)
-│   ├── real_vulnerabilities/          # ⭐ DVWA, WebGoat, etc (ignorado en git)
-│   ├── safe_code/                     # 3 ejemplos de código seguro
-│   ├── samples.csv                    # Dataset final (ignorado en git)
-│   └── features/                      # TF-IDF features (ignorado en git)
+│   ├── github_poc/                         # PoCs descargados (ignorado en git)
+│   ├── searchsploit/                       # Exploits (ignorado en git)
+│   ├── real_vulnerabilities/               # ⭐ DVWA, WebGoat, etc (ignorado en git)
+│   ├── safe_code/                          # 3 ejemplos de código seguro
+│   ├── samples.csv                         # Dataset final (ignorado en git)
+│   └── features/                           # TF-IDF features (ignorado en git)
 │       └── features_tfidf.csv
 │
 ├── models/
-│   ├── model_xgb.pkl                  # ⭐ Modelo XGBoost (ignorado en git)
-│   ├── vectorizer.pkl                 # TF-IDF vectorizer (ignorado en git)
-│   └── label_encoder.pkl              # Encoder de etiquetas (ignorado en git)
+│   ├── model_xgb.pkl                       # ⭐ Modelo XGBoost (ignorado en git)
+│   ├── vectorizer.pkl                      # TF-IDF vectorizer (ignorado en git)
+│   └── label_encoder.pkl                   # Encoder de etiquetas (ignorado en git)
 │
 ├── examples/
-│   ├── vulnerable_sqli.php            # Ejemplos manuales
+│   ├── vulnerable_sqli.php                 # Ejemplos manuales
 │   ├── vulnerable_xss.js
 │   ├── vulnerable_rce.py
 │   ├── safe_code.py
-│   └── generated/                     # 430 ejemplos generados (ignorado en git)
+│   └── generated/                          # 430 ejemplos generados (ignorado en git)
 │
 ├── requirements.txt
 ├── README.md
@@ -288,10 +288,11 @@ SEMMA/
 
 | Archivo | Propósito | Ignorado en Git |
 |---------|-----------|-----------------|
+| `scripts/3_generate_massive_dataset.py` | Genera 430 ejemplos sintéticos | ❌ |
+| `scripts/4_download_real_datasets.py` | **MUY IMPORTANTE** - Descarga código real | ❌ |
 | `scripts/5_make_features.py` | Extrae y etiqueta código | ❌ |
 | `scripts/6_train_model.py` | Entrena XGBoost | ❌ |
 | `scripts/7_detect_file.py` | Detecta vulnerabilidades | ❌ |
-| `scripts/download_real_datasets.py` | **MUY IMPORTANTE** - Descarga código real | ❌ |
 | `models/model_xgb.pkl` | Modelo entrenado (80MB) | ✅ Sí |
 | `dataset/real_vulnerabilities/` | 1,522 archivos reales | ✅ Sí |
 
@@ -377,13 +378,13 @@ El modelo no se incluye en git (pesa 80MB). Debes entrenarlo:
 
 ```bash
 # Opción 1: Entrenar desde cero (recomendado)
-python3 scripts/download_real_datasets.py
-python3 scripts/generate_massive_dataset.py
+python3 scripts/4_download_real_datasets.py
+python3 scripts/3_generate_massive_dataset.py
 python3 scripts/5_make_features.py
 python3 scripts/6_train_model.py
 
 # Opción 2: Solo con datos mínimos (accuracy ~70%)
-python3 scripts/generate_massive_dataset.py
+python3 scripts/3_generate_massive_dataset.py
 python3 scripts/5_make_features.py
 python3 scripts/6_train_model.py
 ```
@@ -393,7 +394,7 @@ python3 scripts/6_train_model.py
 Probablemente no descargaste los repositorios REALES:
 
 ```bash
-python3 scripts/download_real_datasets.py  # CRÍTICO
+python3 scripts/4_download_real_datasets.py  # CRÍTICO
 python3 scripts/5_make_features.py
 python3 scripts/6_train_model.py
 ```

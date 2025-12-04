@@ -143,6 +143,8 @@ XXE:             22 (0.7%)
 
 ## 🚀 Instalación
 
+### Linux / macOS
+
 ```bash
 # 1. Clonar repositorio
 git clone <tu-repo>
@@ -150,7 +152,7 @@ cd SEMMA
 
 # 2. Crear entorno virtual
 python3 -m venv .venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
@@ -160,15 +162,45 @@ sudo git clone https://gitlab.com/exploit-database/exploitdb.git /opt/exploitdb
 sudo ln -sf /opt/exploitdb/searchsploit /usr/local/bin/searchsploit
 ```
 
+### Windows
+
+```powershell
+# 1. Clonar repositorio
+git clone <tu-repo>
+cd SEMMA
+
+# 2. Crear entorno virtual
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# 3. Instalar dependencias
+pip install -r requirements.txt
+
+# Nota: Git debe estar instalado y en PATH
+# Descargar de: https://git-scm.com/download/win
+```
+
+> ⚠️ **Windows:** Si tienes error al ejecutar `.ps1`, ejecuta primero:
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
+
 ---
 
 ## ⚡ Uso Rápido
 
 ### Detectar Vulnerabilidades en un Archivo
 
+**Linux/macOS:**
 ```bash
 source .venv/bin/activate
 python3 scripts/7_detect_file.py examples/vulnerable_sqli.php
+```
+
+**Windows:**
+```powershell
+.venv\Scripts\Activate.ps1
+python scripts\7_detect_file.py examples\vulnerable_sqli.php
 ```
 
 ### Salida Ejemplo:
@@ -206,39 +238,83 @@ Confianza: 98.40%
 
 **Para obtener EXACTAMENTE el mismo modelo que tengo:**
 
+### Linux/macOS
+
 ```bash
 # 1. Activar entorno
 source .venv/bin/activate
 
-# 2. Descargar PoCs de GitHub
+# 2-7. Ejecutar pipeline completo
+bash scripts/pipeline.sh
+
+# O paso por paso:
 bash scripts/1_github_poc.sh
-
-# 3. (Opcional) Descargar exploits de SearchSploit
 bash scripts/2_searchsploit.sh
-
-# 4. Generar ejemplos sintéticos (430 archivos)
 python3 scripts/3_generate_massive_dataset.py
-
-# 5. Descargar repositorios REALES (1,522 archivos - CRÍTICO)
 python3 scripts/4_download_real_datasets.py
-
-# 6. Generar features TF-IDF
 python3 scripts/5_make_features.py
-
-# 7. Entrenar modelo XGBoost
 python3 scripts/6_train_model.py
 
-# 8. ¡Listo! Ahora puedes detectar vulnerabilidades
+# 8. Usar detector
 python3 scripts/7_detect_file.py <archivo>
+```
+
+### Windows
+
+```powershell
+# 1. Activar entorno
+.venv\Scripts\Activate.ps1
+
+# 2-7. Ejecutar pipeline completo
+.\scripts\pipeline.ps1
+
+# O paso por paso:
+python scripts\3_generate_massive_dataset.py
+python scripts\4_download_real_datasets.py
+python scripts\5_make_features.py
+python scripts\6_train_model.py
+
+# 8. Usar detector
+python scripts\7_detect_file.py <archivo>
 ```
 
 ### O Usar el Pipeline Completo:
 
+**Linux/macOS:**
 ```bash
 bash scripts/pipeline.sh
 ```
 
+**Windows:**
+```powershell
+.\scripts\pipeline.ps1
+```
+
 > ⚠️ **Nota:** El paso más importante es el **#5** (`download_real_datasets.py`). Sin los repositorios reales, el modelo tendrá accuracy ~70-80% con falsos negativos.
+
+### 📝 Notas para Usuarios de Windows
+
+**Diferencias principales:**
+
+1. **Scripts `.sh` no funcionan** - Por eso creamos `pipeline.ps1`
+2. **Rutas** - Usa `\` en vez de `/` (ej: `scripts\pipeline.ps1`)
+3. **Python** - Usa `python` en vez de `python3`
+4. **Activación** - `.venv\Scripts\Activate.ps1` en vez de `source .venv/bin/activate`
+5. **Execution Policy** - Si no puedes ejecutar `.ps1`, ejecuta:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+**Lo que SÍ funciona igual:**
+- ✅ Python scripts (3, 4, 5, 6, 7)
+- ✅ Detección de vulnerabilidades
+- ✅ Entrenamiento del modelo
+- ✅ Resultados idénticos
+
+**Lo que NO está disponible en Windows:**
+- ❌ `scripts/1_github_poc.sh` (se salta automáticamente)
+- ❌ `scripts/2_searchsploit.sh` (requiere Linux)
+- ✅ **Pero no importa** - Los pasos 3-6 te dan el mismo modelo con 2,900+ muestras
 
 ---
 

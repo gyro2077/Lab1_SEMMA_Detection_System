@@ -300,7 +300,7 @@ def read_examples() -> list[dict]:
         elif "rce" in fname:
             label = "rce"
         elif "path_traversal" in fname or "path-traversal" in fname:
-            label = " path_traversal"
+            label = "path_traversal"
         elif "deserialization" in fname:
             label = "deserialization"
         elif "weak_crypto" in fname or "weak-crypto" in fname:
